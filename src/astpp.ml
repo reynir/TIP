@@ -41,8 +41,31 @@ let pp_binop op =
           | Mod -> "%")
      ^ " ")
 
-let rec pp_expression e =
-  pp_lazy_or e
+let rec pp_expression e = 
+  (* Match all cases so we can get help from the type checker if we add a new
+   * production in the grammar. *)
+  match e with
+    | Binop (_, op, _) ->
+        (match op with
+           | LazyOr -> pp_lazy_or e
+           | LazyAnd -> pp_lazy_and e
+           | EagerOr -> pp_eager_or e
+           | ExclusiveOr -> pp_exclusive_or e
+           | EagerAnd -> pp_eager_and e
+           | Equal | NotEqual -> pp_equality e
+           | Lt | Gt | Le | Ge -> pp_relational e
+           | Plus | Minus -> pp_additive e
+           | Mul | Div | Mod -> pp_multiplicative e)
+    | Complement _ -> pp_complement e
+    | Deref _ | Ref _ -> pp_pointer e
+
+    | Variable _
+    | IntegerLiteral _ | CharLiteral _
+    | Null | True | False
+    | Malloc | Input 
+    | StaticInvoke _ | NonstaticInvoke _ -> 
+        pp_primary e
+        
 and pp_lazy_or = function
   | Binop (e1, (LazyOr as c), e2) ->
       pp_lazy_and e1;
