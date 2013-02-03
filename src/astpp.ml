@@ -223,14 +223,14 @@ and pp_block level stms =
 let pp_function_decl (name, params, body) =
   print_string name;
   pp_seq print_string params;
-  print_string " {";
-  print_newline ();
+  print_endline " {";
   pp_block 1 body;
-  print_endline "}"
+  print_endline "}";
+  print_newline()
 
 
-let pp_program (main, funcs) =
+let pp_program (funcs, main) =
   List.iter
     pp_function_decl
-    (funcs :: main)
+    (funcs @ [main])
     
