@@ -68,64 +68,64 @@ let rec pp_expression e =
         
 and pp_lazy_or = function
   | Binop (e1, (LazyOr as c), e2) ->
-      pp_lazy_and e1;
+      pp_lazy_or e1;
       pp_binop c;
-      pp_lazy_or e2
+      pp_lazy_and e2
   | e -> pp_lazy_and e
 and pp_lazy_and = function
   | Binop (e1, (LazyAnd as c), e2) ->
-      pp_eager_or e1;
+      pp_lazy_and e1;
       pp_binop c;
-      pp_lazy_and e2
+      pp_eager_or e2
   | e -> pp_eager_or e
 and pp_eager_or = function
   | Binop (e1, (EagerOr as c), e2) ->
       pp_eager_or e1;
       pp_binop c;
-      pp_eager_or e2
+      pp_exclusive_or e2
   | e -> pp_exclusive_or e
 and pp_exclusive_or = function
   | Binop (e1, (ExclusiveOr as c), e2) ->
-      pp_eager_and e1;
+      pp_exclusive_or e1;
       pp_binop c;
-      pp_exclusive_or e2
+      pp_eager_and e2
   | e -> pp_eager_and e
 and pp_eager_and = function
   | Binop (e1, (EagerAnd as c), e2) ->
-      pp_equality e1;
+      pp_eager_and e1;
       pp_binop c;
-      pp_eager_and e2
+      pp_equality e2
   | e -> pp_equality e
 and pp_equality = function
   | Binop (e1, (Equal as c), e2)
   | Binop (e1, (NotEqual as c), e2) ->
-      pp_relational e1;
+      pp_equality e1;
       pp_binop c;
-      pp_equality e2
+      pp_relational e2
   | e -> pp_relational e
 and pp_relational = function
   | Binop (e1, (Lt as c), e2)
   | Binop (e1, (Le as c), e2)
   | Binop (e1, (Gt as c), e2)
   | Binop (e1, (Ge as c), e2) ->
-      pp_additive e1;
+      pp_relational e1;
       pp_binop c;
-      pp_relational e2
+      pp_additive e2
   | e -> pp_additive e
 and pp_additive = function
   | Binop (e1, (Plus as c), e2)
   | Binop (e1, (Minus as c), e2) ->
-      pp_multiplicative e1;
+      pp_additive e1;
       pp_binop c;
-      pp_additive e2
+      pp_multiplicative e2
   | e -> pp_multiplicative e
 and pp_multiplicative = function
   | Binop (e1, (Mul as c), e2)
   | Binop (e1, (Div as c), e2)
   | Binop (e1, (Mod as c), e2) ->
-      pp_complement e1;
+      pp_multiplicative e1;
       pp_binop c;
-      pp_multiplicative e2
+      pp_complement e2
   | e -> pp_complement e
 and pp_complement = function
   | Complement e ->
