@@ -28,7 +28,8 @@
        "null"        , NULL;
        "malloc"      , MALLOC;
        "output"      , OUTPUT;
-       "var"         , VAR ]
+       "var"         , VAR;
+       "input"       , INPUT ]
 
 
 }
