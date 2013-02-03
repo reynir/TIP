@@ -185,6 +185,7 @@ let rec pp_statement level = function
   | Block stms ->
       print_endline "{";
       pp_block (level+1) stms;
+      indent level;
       print_endline "}"
   | VariableAssignment (id, expr) ->
       print_string id;
