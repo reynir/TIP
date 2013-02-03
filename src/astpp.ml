@@ -44,13 +44,13 @@ let pp_binop op =
 let rec pp_expression e =
   pp_lazy_or e
 and pp_lazy_or = function
-  | Binop (e1, (LazyAnd as c), e2) ->
+  | Binop (e1, (LazyOr as c), e2) ->
       pp_lazy_and e1;
       pp_binop c;
       pp_lazy_or e2
   | e -> pp_lazy_and e
 and pp_lazy_and = function
-  | Binop (e1, (LazyOr as c), e2) ->
+  | Binop (e1, (LazyAnd as c), e2) ->
       pp_eager_or e1;
       pp_binop c;
       pp_lazy_and e2
