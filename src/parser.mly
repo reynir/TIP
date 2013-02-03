@@ -111,19 +111,14 @@ local_variable_declaration
 statement_or_declarations
   :
     {}
-  |  statement_or_declarations statement_or_declaration
+  |  statement_or_declaration statement_or_declarations
     {}
   ;
 
 statement_or_declaration
-  :  statement
+  : local_variable_declaration
      {}
-  |  local_variable_declaration_statement
-     {}
-  ;
-
-statement
-  : if_then_statement
+  | if_then_statement
     {}
   | if_then_else_statement
     {}
@@ -139,10 +134,6 @@ statement
     {}
   ;
 
-local_variable_declaration_statement
-  :  local_variable_declaration SEMICOLON
-     {}
-  ;
 
 output_statement
   : OUTPUT expression SEMICOLON
@@ -151,6 +142,8 @@ output_statement
 
 assignment_statement
   : IDENTIFIER ASSIGN expression SEMICOLON
+    {}
+  | STAR pointer_expression ASSIGN expression SEMICOLON
     {}
   ;
 
@@ -258,11 +251,11 @@ unary_expression
 multiplicative_expression
   : unary_expression
     {}
-  | multiplicative_expression STAR pointer_expression
+  | multiplicative_expression STAR unary_expression
     {}
-  | multiplicative_expression DIV pointer_expression
+  | multiplicative_expression DIV unary_expression
     {}
-  | multiplicative_expression MOD pointer_expression
+  | multiplicative_expression MOD unary_expression
     {}
   ;
 
