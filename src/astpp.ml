@@ -167,20 +167,24 @@ let rec pp_statement level = function
       pp_expression test;
       print_endline ") {";
       pp_block (level+1) consequent;
+      indent level;
       print_endline "}"
   | IfThenElse (test, consequent, alternative) ->
       print_string "if (";
       pp_expression test;
       print_endline ") {";
       pp_block (level+1) consequent;
+      indent level;
       print_endline "} else {";
       pp_block (level+1) alternative;
+      indent level;
       print_endline "}"
   | While (test, body) ->
       print_string "while (";
       pp_expression test;
       print_endline ") {";
       pp_block (level+1) body;
+      indent level;
       print_endline "}"
   | Block stms ->
       print_endline "{";
