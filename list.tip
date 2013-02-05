@@ -7,34 +7,69 @@ succ(n0) {
   *h = n0;
   return h;
 }
-plus(n1,m) {
-  if (n1 == zero()) {
-    return m;
-  } else {
-    return plus(*n1, succ(m));
-  }
-}
-mul(n2,m) {
-  if (n2 == zero()) {
+pred(n) {
+  if (n == zero()) {
     return zero();
   } else {
-    return plus(m, mul(*n2,m));
+    return *n;
   }
 }
-div2(n3) {
-  if (n3 == zero()) {
-    return zero();
+plus(n,m) {
+  while (n != zero()) {
+    n = pred(n);
+    m = succ(m);
   }
-  if (*n3 == zero()) {
-    return zero();
-  }
-  return succ(div2(**n3));
+  return m;
 }
-pow2(n4) {
-  if (n4 == zero()) {
+le(n, m) {
+  while (!((n == zero()) + (m == zero()))) {
+    n = pred(n);
+    m = pred(m);
+  }
+  if (n == zero()) {
+    return true;
+  }
+  return false;
+}
+mul(n,m) {
+  var t, r;
+  r = zero();
+  while (n != zero()) {
+    n = pred(n);
+    t = m;
+    while (t != zero()) {
+      t = pred(t);
+      r = succ(r);
+    }
+  }
+  return r;
+}
+double(n) {
+  var r;
+  r = n;
+  while (n != zero()) {
+    n = pred(n);
+    r = succ(r);
+  }
+  return r;
+}
+div2(n) {
+  var r;
+  r = zero();
+  while (n != zero()) {
+    if (pred(n) == zero()) {
+      return r;
+    }
+    r = succ(r);
+    n = pred(pred(n));
+  }
+  return r;
+}
+pow2(n) {
+  if (n == zero()) {
     return succ(zero());
   } else {
-    return mul(int_to_nat(2), pow2(*n4));
+    return double(pow2(pred(n)));
   }
 }
 nat_to_int(n5) {
@@ -51,14 +86,14 @@ int_to_nat(n6) {
     return succ(int_to_nat(n6-1));
   }
 }
-even(n7) {
-  if (n7 == zero()) {
-    return true;
+even(n) {
+  while (n != zero()) {
+    if (pred(n) == zero()) {
+      return false;
+    }
+    n = pred(pred(n));
   }
-  if (*n7 == zero()) {
-    return false;
-  }
-  return even(**n7);
+  return true;
 }
 
 nil() {
@@ -68,7 +103,7 @@ cons(i, xs) {
   var x;
   x = int_to_nat(i);
   // return 2^x*(2*xs+1)
-  return mul(pow2(x), plus(mul(int_to_nat(2), xs), int_to_nat(1)));
+  return mul(pow2(x), succ(double(xs)));
 }
 fst(p) {
   var r;
@@ -87,10 +122,47 @@ rest(p) {
   return div2(*p);
 }
 
+t(n, m) {
+  output 9999;
+  output nat_to_int(n);
+  output m;
+  output 8888;
+  return 0;
+}
+t_int(n, m) {
+  output 9999;
+  output n;
+  output m;
+  output 8888;
+  return 0;
+}
+test() {
+  var _;
+  _ = t(div2(int_to_nat(42)), 21);
+  _ = t(div2(int_to_nat(43)), 21);
+
+  _ = t(plus(int_to_nat(42), int_to_nat(42)), 84);
+  _ =  t(mul(int_to_nat(12), int_to_nat(12)), 144);
+  _ =  t(mul(int_to_nat(3), int_to_nat(31)), 93);
+
+  _ = t(double(int_to_nat(11)), 22);
+  _ = t(double(int_to_nat(0)), 0);
+
+  _ = t_int(even(int_to_nat(42)), true);
+  _ = t_int(even(int_to_nat(1337)), false);
+
+  _ = t_int(fst(int_to_nat(4)), 2);
+  _ = t_int(fst(int_to_nat(8)), 3);
+  _ = t_int(rest(int_to_nat(1)), null);
+
+  _ = t(pow2(int_to_nat(2)), 4);
+  _ = t(pow2(int_to_nat(3)), 8);
+  return 0;
+}
 main() {
   var xs;
   xs = nil();
-  xs = cons(1, xs);
+  xs = cons(12, xs);
   xs = cons(2, xs);
   xs = cons(3, xs);
   output fst(xs); // 3
