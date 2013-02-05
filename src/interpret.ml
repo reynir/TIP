@@ -15,6 +15,14 @@ and cell_value =
 and cell =
     cell_value ref
 
+let tip_f = Integer Z.zero
+and tip_t = Integer Z.one
+
+let tip_bool b =
+  if b
+  then tip_t
+  else tip_f
+
 let rec print_tip_type v =
   match v with
     | Integer i ->
@@ -104,9 +112,7 @@ let execute (other, main) args =
     | Complement e ->
         (match eval env e with
            | Integer i ->
-               if Z.equal Z.zero i
-               then Integer Z.one
-               else Integer Z.zero
+               tip_bool (Z.equal Z.zero i)
            | _ -> failwith "Wrong type for complement")
     | Deref e ->
         (match eval env e with
@@ -139,7 +145,7 @@ let execute (other, main) args =
     | Equal | NotEqual -> 
         (match eval env e1, eval env e2 with
            | Integer i1, Integer i2 ->
-               if Z.equal i1 i2 then 1 else 0
+               tip_bool (Z.equal i1 i2)
            | _ -> 
                failwith "Non-integer comparison not yet implemented")
     | _ ->
@@ -149,7 +155,7 @@ let execute (other, main) args =
                  | EagerOr | ExclusiveOr | EagerAnd ->
                      failwith "Binary operation not yet implemented"
                  | Lt ->
-                     Integer (if Z.lt i1 i2 then 1 else 0)
+                     tip_bool (Z.lt i1 i2)
                  | Gt | Le | Ge ->
                      failwith "Binary operation not yet implemented"
                  | Plus ->
@@ -185,7 +191,7 @@ let execute (other, main) args =
            | Integer i ->
                if Z.equal Z.zero i
                then k env
-               else 
+               else
                  exec_stms 
                    (fun _ -> k env)
                    return
@@ -208,7 +214,8 @@ let execute (other, main) args =
                       (fun _ -> exec_stm k return env stm)
                       return
                       env
-                      body)
+                      body
+           | _ -> failwith "Non-integer in while test")
     | Block b ->
         exec_stms (fun _ -> k env) return env b
     | VariableAssignment (id, e) ->
