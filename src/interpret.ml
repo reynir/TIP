@@ -30,7 +30,8 @@ let rec string_of_tip_value v =
     | Nil -> "null"
     | FunctionPointer id ->
         id ^ "()"
-    | Pointer _ -> failwith "Printing pointers is not yet implemented"
+    | Pointer r -> 
+        "@"^string_of_int (Obj.magic r)
 
 let rec string_of_tip_type v =
   match v with
@@ -103,7 +104,7 @@ let execute (other, main) args =
   let funcs = get_funcs (main :: other) in
   let rec eval env e : tip_type = 
     (*
-    print_endline "####### Eval ###";
+    print_endline "####### Evaluating ###";
     Wastpp.pp_expression e;
     print_newline();
      *)
@@ -159,21 +160,24 @@ let execute (other, main) args =
     | LazyOr | LazyAnd ->
         failwith "LazyAnd and LazyOr are not yet implemented"
     | Equal | NotEqual -> 
-        (match eval env e1, eval env e2 with
-           | Integer i1, Integer i2 ->
-               tip_bool (Z.equal i1 i2)
-           | Integer _, _ ->
-               tip_f
-           | _, Integer _ ->
-               tip_f
-           | Nil, Nil ->
-               tip_t
-           | Nil, _ ->
-               tip_f
-           | _, Nil ->
-               tip_f
-           | _ -> 
-               failwith "Non-integer comparison not yet implemented")
+        tip_bool (
+          (match eval env e1, eval env e2 with
+             | Integer i1, Integer i2 ->
+                 Z.equal i1 i2
+             | Nil, Nil ->
+                 true
+             | Nil, Pointer _ | Pointer _, Nil ->
+                 false
+             | Pointer r1, Pointer r2 ->
+                 r1 == r2
+             | FunctionPointer f1, FunctionPointer f2 ->
+                 f1 = f2
+             | v1, v2 ->
+                 failwith ("Comparison between two different types: "
+                           ^ string_of_tip_type v1
+                           ^ " and "
+                           ^string_of_tip_type v2))
+            = (op = Equal)) (* Clever hack *)
     | _ ->
         match eval env e1, eval env e2 with
           | Integer i1, Integer i2 ->
@@ -212,7 +216,7 @@ let execute (other, main) args =
              env
              stm = 
     (*
-    print_endline "### Evaluating ###";
+    print_endline "### Executing ###";
     Wastpp.pp_statement 1 stm;
      *)
     match stm with
@@ -253,7 +257,7 @@ let execute (other, main) args =
         let v = eval env e
         in (try setbang env id v
             with Not_found -> 
-              failwith ("The variable "^id^" was not found in assignment"));
+              failwith ("The variable "^id^" is not declared in assignment"));
         k env
     | PointerAssignment (e1, e2) ->
         let v1 = eval env e1
