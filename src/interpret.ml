@@ -23,14 +23,21 @@ let tip_bool b =
   then tip_t
   else tip_f
 
-let rec print_tip_type v =
+let rec string_of_tip_value v =
   match v with
     | Integer i ->
-        print_endline (Z.to_string i)
-    | Nil -> print_endline "null"
+        Z.to_string i
+    | Nil -> "null"
     | FunctionPointer id ->
-        print_endline (id ^ "()")
+        id ^ "()"
     | Pointer _ -> failwith "Printing pointers is not yet implemented"
+
+let rec string_of_tip_type v =
+  match v with
+    | Integer _ -> "int"
+    | Nil -> "&?"
+    | FunctionPointer _ -> "? -> ?"
+    | Pointer _ -> "&?"
 
 (** Environments **)
 module M =
@@ -94,7 +101,13 @@ let get_funcs funcs =
 let execute (other, main) args =
   (* (funcs : identifier M.t) *)
   let funcs = get_funcs (main :: other) in
-  let rec eval env e : tip_type = match e with
+  let rec eval env e : tip_type = 
+    (*
+    print_endline "####### Eval ###";
+    Wastpp.pp_expression e;
+    print_newline();
+     *)
+    match e with
     | Variable id ->
         (try match !(lookup id env) with
            | Unitialized -> failwith "Unitialized memory cell!"
@@ -122,8 +135,11 @@ let execute (other, main) args =
                (match !r with
                   | Initialized v -> v
                   | Unitialized -> failwith "Unitialized memory cell addressed")
-           | _ ->
-               failwith "Wrong type for dereference")
+           | v ->
+               failwith ("Wrong type for dereference: "
+                         ^string_of_tip_value v
+                         ^ " : "
+                         ^string_of_tip_type v))
     | Ref id ->
         (* FIXME: Not_found exception *)
         Pointer (lookup id env)
@@ -146,6 +162,16 @@ let execute (other, main) args =
         (match eval env e1, eval env e2 with
            | Integer i1, Integer i2 ->
                tip_bool (Z.equal i1 i2)
+           | Integer _, _ ->
+               tip_f
+           | _, Integer _ ->
+               tip_f
+           | Nil, Nil ->
+               tip_t
+           | Nil, _ ->
+               tip_f
+           | _, Nil ->
+               tip_f
            | _ -> 
                failwith "Non-integer comparison not yet implemented")
     | _ ->
@@ -184,7 +210,12 @@ let execute (other, main) args =
              (k : env -> return_type)
              (return : tip_type -> return_type)
              env
-             stm = match stm with
+             stm = 
+    (*
+    print_endline "### Evaluating ###";
+    Wastpp.pp_statement 1 stm;
+     *)
+    match stm with
     | LocalDecls ids -> k (introduce env ids)
     | IfThen (e, consequent) ->
         (match eval env e with
@@ -220,7 +251,10 @@ let execute (other, main) args =
         exec_stms (fun _ -> k env) return env b
     | VariableAssignment (id, e) ->
         let v = eval env e
-        in k (setbang env id v; env)
+        in (try setbang env id v
+            with Not_found -> 
+              failwith ("The variable "^id^" was not found in assignment"));
+        k env
     | PointerAssignment (e1, e2) ->
         let v1 = eval env e1
         and v2 = eval env e2
@@ -233,7 +267,7 @@ let execute (other, main) args =
                   failwith "Trying to assign to non-pointer")
     | Output e ->
         let v = eval env e
-        in print_string "TODO: output";
+        in print_endline (string_of_tip_value v);
            k env
     | ValueReturn e ->
         return (eval env e)
@@ -241,7 +275,9 @@ let execute (other, main) args =
         failwith "Void return not allowed (yet)"
 
   and call id args : tip_type =
-    let (_, params, body) = M.find id funcs
+    let (_, params, body) = try 
+      M.find id funcs
+    with Not_found -> failwith ("The function "^id^" was not found")
     in 
       exec_stms 
         (fun _ -> failwith "Function ran off the end")
@@ -253,6 +289,6 @@ let execute (other, main) args =
     | (_, main_params, main_body) ->
         exec_stms
           (fun _ -> print_endline "Main ended with no return value"; Integer Z.zero)
-          (fun v -> print_tip_type v; v)
+          (fun v -> print_endline (string_of_tip_value v); v)
           (extend_values Empty (List.combine main_params args))
           main_body
