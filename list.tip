@@ -1,0 +1,103 @@
+zero() {
+  return null;
+}
+succ(n0) {
+  var h;
+  h = malloc;
+  *h = n0;
+  return h;
+}
+plus(n1,m) {
+  if (n1 == zero()) {
+    return m;
+  } else {
+    return plus(*n1, succ(m));
+  }
+}
+mul(n2,m) {
+  if (n2 == zero()) {
+    return zero();
+  } else {
+    return plus(m, mul(*n2,m));
+  }
+}
+div2(n3) {
+  if (n3 == zero()) {
+    return zero();
+  }
+  if (*n3 == zero()) {
+    return zero();
+  }
+  return succ(div2(**n3));
+}
+pow2(n4) {
+  if (n4 == zero()) {
+    return succ(zero());
+  } else {
+    return mul(int_to_nat(2), pow2(*n4));
+  }
+}
+nat_to_int(n5) {
+  if (n5 == zero()) {
+    return 0;
+  } else {
+    return 1 + nat_to_int(*n5);
+  }
+}
+int_to_nat(n6) {
+  if (n6 == 0) {
+    return zero();
+  } else {
+    return succ(int_to_nat(n6-1));
+  }
+}
+even(n7) {
+  if (n7 == zero()) {
+    return true;
+  }
+  if (*n7 == zero()) {
+    return false;
+  }
+  return even(**n7);
+}
+
+nil() {
+  return zero();
+}
+cons(i, xs) {
+  var x;
+  x = int_to_nat(i);
+  // return 2^x*(2*xs+1)
+  return mul(pow2(x), plus(mul(int_to_nat(2), xs), int_to_nat(1)));
+}
+fst(p) {
+  var r;
+  r = 0;
+  while (even(p)) {
+    r = r + 1;
+    p = div2(p);
+  }
+  return r;
+}
+rest(p) {
+  var r;
+  while (even(p)) {
+    p = div2(p);
+  }
+  return div2(*p);
+}
+
+main() {
+  var xs;
+  xs = nil();
+  xs = cons(1, xs);
+  xs = cons(2, xs);
+  xs = cons(3, xs);
+  output fst(xs); // 3
+  xs = rest(xs);
+  output fst(xs); // 2
+  xs = rest(xs);
+  output fst(xs); // 1
+  xs = rest(xs);
+  output xs; // null
+}
