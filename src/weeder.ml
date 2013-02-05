@@ -42,7 +42,7 @@ let rec weed_expression = function
       Wast.NonstaticInvoke (weed_expression e, List.map weed_expression args)
   | Ast.Null -> Wast.Null
   | Ast.True -> Wast.IntegerLiteral Z.one
-  | Ast.False -> Wast.IntegerLiteral Z.one
+  | Ast.False -> Wast.IntegerLiteral Z.zero
   | Ast.Malloc -> Wast.Malloc
   | Ast.Input -> Wast.Input
 

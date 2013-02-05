@@ -100,9 +100,7 @@ let execute (other, main) args =
     | Null ->
         Nil
     | Binop (e1, op, e2) ->
-        let v1 = eval env e1
-        and v2 = eval env e2
-        in eval_binop env op v1 v2
+        eval_binop env op e1 e2
     | Complement e ->
         (match eval env e with
            | Integer i ->
@@ -135,21 +133,32 @@ let execute (other, main) args =
     | Input ->
         (* TODO *)
         Integer Z.zero
-  and eval_binop env op v1 v2 = match op with
-    | LazyOr | LazyAnd
-    | EagerOr | ExclusiveOr | EagerAnd ->
-        failwith "Binary operation not yet implemented"
-    | Equal | NotEqual
-    | Lt | Gt | Le | Ge ->
-        failwith "Binary operation not yet implemented"
-    | Plus ->
-        (match v1, v2 with
+  and eval_binop env op e1 e2 = match op with
+    | LazyOr | LazyAnd ->
+        failwith "LazyAnd and LazyOr are not yet implemented"
+    | Equal | NotEqual -> 
+        (match eval env e1, eval env e2 with
            | Integer i1, Integer i2 ->
-               Integer (Z.add i1 i2)
-           | _ -> failwith "Trying to add non-integers")
-    | Minus
-    | Mul | Div | Mod ->
-        failwith "Binary operation not yet implemented"
+               if Z.equal i1 i2 then 1 else 0
+           | _ -> 
+               failwith "Non-integer comparison not yet implemented")
+    | _ ->
+        match eval env e1, eval env e2 with
+          | Integer i1, Integer i2 ->
+              (match op with
+                 | EagerOr | ExclusiveOr | EagerAnd ->
+                     failwith "Binary operation not yet implemented"
+                 | Lt ->
+                     Integer (if Z.lt i1 i2 then 1 else 0)
+                 | Gt | Le | Ge ->
+                     failwith "Binary operation not yet implemented"
+                 | Plus ->
+                     Integer (Z.add i1 i2)
+                 | Minus ->
+                     Integer (Z.sub i1 i2)
+                 | Mul | Div | Mod ->
+                     failwith "Binary operation not yet implemented")
+          | _ -> failwith "Non-integer arguments in integer operations"
 
   (* TODO: restructure with continuations *)
   and exec_stms 
@@ -175,20 +184,20 @@ let execute (other, main) args =
         (match eval env e with
            | Integer i ->
                if Z.equal Z.zero i
-               then 
+               then k env
+               else 
                  exec_stms 
                    (fun _ -> k env)
                    return
                    env
                    consequent
-               else k env
            | _ -> failwith "Non-integer in if test")
     | IfThenElse (e, consequent, alternative) ->
         (match eval env e with
            | Integer i ->
                if Z.equal Z.zero i
-               then exec_stms (fun _ -> k env) return env consequent
-               else exec_stms (fun _ -> k env) return env alternative
+               then exec_stms (fun _ -> k env) return env alternative
+               else exec_stms (fun _ -> k env) return env consequent
            | _ -> failwith "Non-integer in if test")
     | While (e, body) ->
         (match eval env e with
