@@ -1,16 +1,28 @@
 type identifier =
     Ast.identifier
 
-type binop =
-    Ast.binop
+type binop = Ast.binop =
+  | LazyOr
+  | LazyAnd
+  | EagerOr
+  | ExclusiveOr
+  | EagerAnd
+  | Equal
+  | NotEqual
+  | Lt
+  | Gt
+  | Le
+  | Ge
+  | Plus
+  | Minus
+  | Mul
+  | Div
+  | Mod
 
 type expression =
   | Variable of identifier
   | IntegerLiteral of Z.t (* NEW *)
   | Null
-  | CharLiteral of Z.t (* NEW *)
-  | True
-  | False
   | Binop of expression * binop * expression
   | Complement of expression
   | Deref of expression

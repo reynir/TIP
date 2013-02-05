@@ -27,7 +27,7 @@ let rec weed_expression = function
   | Ast.Variable id -> Wast.Variable id
   | Ast.IntegerLiteral i -> Wast.IntegerLiteral (Z.of_string i)
   | Ast.CharLiteral c -> 
-      Wast.CharLiteral (Z.of_int (weed_char c))
+      Wast.IntegerLiteral (Z.of_int (weed_char c))
   | Ast.Binop (e1, op, e2) ->
       Wast.Binop (weed_expression e1, op, weed_expression e2)
   | Ast.Complement e ->
@@ -41,8 +41,8 @@ let rec weed_expression = function
   | Ast.NonstaticInvoke (e, args) ->
       Wast.NonstaticInvoke (weed_expression e, List.map weed_expression args)
   | Ast.Null -> Wast.Null
-  | Ast.True -> Wast.True
-  | Ast.False -> Wast.False
+  | Ast.True -> Wast.IntegerLiteral Z.one
+  | Ast.False -> Wast.IntegerLiteral Z.one
   | Ast.Malloc -> Wast.Malloc
   | Ast.Input -> Wast.Input
 

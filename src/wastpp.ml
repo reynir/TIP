@@ -61,8 +61,8 @@ let rec pp_expression e =
     | Deref _ | Ref _ -> pp_pointer e
 
     | Variable _
-    | IntegerLiteral _ | CharLiteral _
-    | Null | True | False
+    | IntegerLiteral _
+    | Null
     | Malloc | Input 
     | StaticInvoke _ | NonstaticInvoke _ -> 
         pp_primary e
@@ -143,10 +143,7 @@ and pp_pointer = function
 and pp_primary = function
   | Variable id -> print_string id
   | IntegerLiteral i -> print_string (Z.to_string i)
-  | CharLiteral c -> print_string ("'"^Z.to_string c^"'")
   | Null -> print_string "null"
-  | True -> print_string "true"
-  | False -> print_string "false"
   | Malloc -> print_string "malloc"
   | Input -> print_string "input"
   | StaticInvoke (id, args) ->
