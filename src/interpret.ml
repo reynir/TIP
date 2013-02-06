@@ -142,15 +142,19 @@ let execute (other, main) args =
                          ^ " : "
                          ^string_of_tip_type v))
     | Ref id ->
-        (* FIXME: Not_found exception *)
-        Pointer (lookup id env)
+        (try
+           Pointer (lookup id env)
+         with Not_found ->
+           failwith ("Variable "^id^" was not found"))
     | StaticInvoke (f, args) ->
         let args = List.map (eval env) args
         in call f args
     | NonstaticInvoke (e, args) ->
-        let f = eval env e
+        let f = match eval env e with
+          | FunctionPointer f -> f
+          | _ -> failwith ("Trying to call non-function")
         and args = List.map (eval env) args
-        in failwith "TODO!"
+        in call f args
     | Malloc ->
         Pointer (ref Unitialized)
     | Input ->
@@ -158,26 +162,41 @@ let execute (other, main) args =
         Integer Integer.zero
   and eval_binop env op e1 e2 = match op with
     | LazyOr | LazyAnd ->
-        failwith "LazyAnd and LazyOr are not yet implemented"
+        (match eval env e1 with
+          | (Integer i1) as v1 ->
+              (* Clever hack *)
+              if (Integer.equal i1 Integer.zero) = (op = LazyOr)
+              then (match eval env e2 with
+                      | (Integer i2) as v2 ->
+                          v2
+                      | _ -> failwith ("Wrong type for "
+                                       ^if op = LazyOr 
+                                       then "LazyOr" 
+                                       else "LazyAnd"))
+              else v1
+          | _ -> failwith ("Wrong type for "
+                           ^if op = LazyOr 
+                           then "LazyOr" 
+                           else "LazyAnd"))
     | Equal | NotEqual -> 
-        tip_bool (
-          (match eval env e1, eval env e2 with
-             | Integer i1, Integer i2 ->
-                 Integer.equal i1 i2
-             | Nil, Nil ->
-                 true
-             | Nil, Pointer _ | Pointer _, Nil ->
-                 false
-             | Pointer r1, Pointer r2 ->
-                 r1 == r2
-             | FunctionPointer f1, FunctionPointer f2 ->
-                 f1 = f2
-             | v1, v2 ->
-                 failwith ("Comparison between two different types: "
-                           ^ string_of_tip_type v1
-                           ^ " and "
-                           ^string_of_tip_type v2))
-            = (op = Equal)) (* Clever hack *)
+        tip_bool
+          ((match eval env e1, eval env e2 with
+              | Integer i1, Integer i2 ->
+                  Integer.equal i1 i2
+              | Nil, Nil ->
+                  true
+              | Nil, Pointer _ | Pointer _, Nil ->
+                  false
+              | Pointer r1, Pointer r2 ->
+                  r1 == r2
+              | FunctionPointer f1, FunctionPointer f2 ->
+                  f1 = f2
+              | v1, v2 ->
+                  failwith ("Comparison between two different types: "
+                            ^ string_of_tip_type v1
+                            ^ " and "
+                            ^string_of_tip_type v2))
+             = (op = Equal)) (* Clever hack *)
     | _ ->
         match eval env e1, eval env e2 with
           | Integer i1, Integer i2 ->
@@ -274,7 +293,32 @@ let execute (other, main) args =
         in print_endline (string_of_tip_value v);
            k env
     | ValueReturn e ->
-        return (eval env e)
+        (match e with
+           | StaticInvoke (f, args) ->
+               let args = List.map (eval env) args in
+               let (_, params, body) = try
+                 M.find f funcs
+               with Not_found -> failwith ("The function "^f^" was not found")
+               in exec_stms
+                    (fun _ -> failwith "Function ran off the end")
+                    return
+                    (extend_values Empty (List.combine params args))
+                    body
+           | NonstaticInvoke (e, args) ->
+               let f = match eval env e with
+                 | FunctionPointer f -> f
+                 | _ -> failwith "Trying to call non-function" in
+               let args = List.map (eval env) args in
+               let (_, params, body) = try
+                 M.find f funcs
+               with Not_found -> failwith ("The function "^f^" was not found")
+               in exec_stms
+                    (fun _ -> failwith "Function ran off the end")
+                    return
+                    (extend_values Empty (List.combine params args))
+                    body
+           | _ ->
+               return (eval env e))
     | VoidReturn ->
         failwith "Void return not allowed (yet)"
 
