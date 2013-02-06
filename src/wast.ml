@@ -1,3 +1,6 @@
+module Integer =
+  (Z : I.INTEGER)
+
 type identifier =
     Ast.identifier
 
@@ -21,7 +24,7 @@ type binop = Ast.binop =
 
 type expression =
   | Variable of identifier
-  | IntegerLiteral of Z.t (* NEW *)
+  | IntegerLiteral of Integer.t (* NEW *)
   | Null
   | Binop of expression * binop * expression
   | Complement of expression

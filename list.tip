@@ -162,7 +162,7 @@ test() {
 main() {
   var xs;
   xs = nil();
-  xs = cons(12, xs);
+  xs = cons(1, xs);
   xs = cons(2, xs);
   xs = cons(3, xs);
   output fst(xs); // 3

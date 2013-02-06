@@ -142,7 +142,7 @@ and pp_pointer = function
   | e -> pp_primary e
 and pp_primary = function
   | Variable id -> print_string id
-  | IntegerLiteral i -> print_string (Z.to_string i)
+  | IntegerLiteral i -> print_string (Integer.to_string i)
   | Null -> print_string "null"
   | Malloc -> print_string "malloc"
   | Input -> print_string "input"

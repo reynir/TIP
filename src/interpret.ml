@@ -2,7 +2,7 @@ open Wast
 
 (** TIP types **)
 type tip_type =
-  | Integer of Z.t
+  | Integer of Integer.t
   | Pointer of cell (* None represents null *)
   | Nil
   | FunctionPointer of Wast.identifier
@@ -15,8 +15,8 @@ and cell_value =
 and cell =
     cell_value ref
 
-let tip_f = Integer Z.zero
-and tip_t = Integer Z.one
+let tip_f = Integer Integer.zero
+and tip_t = Integer Integer.one
 
 let tip_bool b =
   if b
@@ -26,7 +26,7 @@ let tip_bool b =
 let rec string_of_tip_value v =
   match v with
     | Integer i ->
-        Z.to_string i
+        Integer.to_string i
     | Nil -> "null"
     | FunctionPointer id ->
         id ^ "()"
@@ -126,7 +126,7 @@ let execute (other, main) args =
     | Complement e ->
         (match eval env e with
            | Integer i ->
-               tip_bool (Z.equal Z.zero i)
+               tip_bool (Integer.equal Integer.zero i)
            | _ -> failwith "Wrong type for complement")
     | Deref e ->
         (match eval env e with
@@ -155,7 +155,7 @@ let execute (other, main) args =
         Pointer (ref Unitialized)
     | Input ->
         (* TODO *)
-        Integer Z.zero
+        Integer Integer.zero
   and eval_binop env op e1 e2 = match op with
     | LazyOr | LazyAnd ->
         failwith "LazyAnd and LazyOr are not yet implemented"
@@ -163,7 +163,7 @@ let execute (other, main) args =
         tip_bool (
           (match eval env e1, eval env e2 with
              | Integer i1, Integer i2 ->
-                 Z.equal i1 i2
+                 Integer.equal i1 i2
              | Nil, Nil ->
                  true
              | Nil, Pointer _ | Pointer _, Nil ->
@@ -185,13 +185,13 @@ let execute (other, main) args =
                  | EagerOr | ExclusiveOr | EagerAnd ->
                      failwith "Binary operation not yet implemented"
                  | Lt ->
-                     tip_bool (Z.lt i1 i2)
+                     tip_bool (Integer.lt i1 i2)
                  | Gt | Le | Ge ->
                      failwith "Binary operation not yet implemented"
                  | Plus ->
-                     Integer (Z.add i1 i2)
+                     Integer (Integer.add i1 i2)
                  | Minus ->
-                     Integer (Z.sub i1 i2)
+                     Integer (Integer.sub i1 i2)
                  | Mul | Div | Mod ->
                      failwith "Binary operation not yet implemented")
           | _ -> failwith "Non-integer arguments in integer operations"
@@ -224,7 +224,7 @@ let execute (other, main) args =
     | IfThen (e, consequent) ->
         (match eval env e with
            | Integer i ->
-               if Z.equal Z.zero i
+               if Integer.equal Integer.zero i
                then k env
                else
                  exec_stms 
@@ -236,14 +236,14 @@ let execute (other, main) args =
     | IfThenElse (e, consequent, alternative) ->
         (match eval env e with
            | Integer i ->
-               if Z.equal Z.zero i
+               if Integer.equal Integer.zero i
                then exec_stms (fun _ -> k env) return env alternative
                else exec_stms (fun _ -> k env) return env consequent
            | _ -> failwith "Non-integer in if test")
     | While (e, body) ->
         (match eval env e with
            | Integer i ->
-               if Z.equal Z.zero i
+               if Integer.equal Integer.zero i
                then k env
                else exec_stms 
                       (fun _ -> exec_stm k return env stm)
@@ -292,7 +292,7 @@ let execute (other, main) args =
   in match main with
     | (_, main_params, main_body) ->
         exec_stms
-          (fun _ -> print_endline "Main ended with no return value"; Integer Z.zero)
+          (fun _ -> print_endline "Main ended with no return value"; Integer Integer.zero)
           (fun v -> print_endline (string_of_tip_value v); v)
           (extend_values Empty (List.combine main_params args))
           main_body
