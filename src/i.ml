@@ -47,7 +47,6 @@ struct
   let to_string = string_of_int
 end
 
-(*
 module BigInt =
 struct
   type t = Big_int.big_int
@@ -71,4 +70,3 @@ struct
   let of_string = Big_int.big_int_of_string
   let to_string = Big_int.string_of_big_int
 end
- *)
