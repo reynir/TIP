@@ -201,18 +201,28 @@ let execute (other, main) args =
         match eval env e1, eval env e2 with
           | Integer i1, Integer i2 ->
               (match op with
-                 | EagerOr | ExclusiveOr | EagerAnd ->
-                     failwith "Binary operation not yet implemented"
+                 | EagerOr ->
+                     Integer (Integer.(lor) i1 i2)
+                 | ExclusiveOr ->
+                     Integer (Integer.(lxor) i1 i2)
+                 | EagerAnd ->
+                     Integer (Integer.(land) i1 i2)
                  | Lt ->
                      tip_bool (Integer.lt i1 i2)
-                 | Gt | Le | Ge ->
+                 | Gt ->
+                     tip_bool (Integer.lt i2 i1)
+                 | Le | Ge ->
                      failwith "Binary operation not yet implemented"
                  | Plus ->
                      Integer (Integer.add i1 i2)
                  | Minus ->
                      Integer (Integer.sub i1 i2)
-                 | Mul | Div | Mod ->
-                     failwith "Binary operation not yet implemented")
+                 | Mul ->
+                     Integer (Integer.mul i1 i2)
+                 | Div ->
+                     Integer (Integer.div i1 i2)
+                 | Mod ->
+                     Integer (Integer.(mod) i1 i2))
           | _ -> failwith "Non-integer arguments in integer operations"
 
   (* TODO: restructure with continuations *)

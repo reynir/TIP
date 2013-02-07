@@ -1,4 +1,6 @@
 TIP implementation in ocaml.
 
 Dependencies:
-  * zarith
+  * zarith (optional, default)
+  * ocamlbuild (for the build system)
+  * ocamlfind (for the build system)

@@ -1,7 +1,7 @@
 (* Change this to use another integer implementation. For example, I.Int uses
  * the native OCaml int *)
 module Integer =
-  (Z : I.INTEGER) 
+  (I.Z : I.INTEGER) 
 
 type identifier =
     Ast.identifier

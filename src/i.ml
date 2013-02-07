@@ -14,6 +14,10 @@ sig
   val div : t -> t -> t
   val (mod) : t -> t -> t
 
+  val (land) : t -> t -> t
+  val (lor) : t -> t -> t
+  val (lxor) : t -> t -> t
+
   val equal : t -> t -> bool
   val lt : t -> t -> bool
 
@@ -24,7 +28,7 @@ end
 
 (** Implementations **)
 
-module Int =
+module Int : INTEGER =
 struct
   type t = int
   let zero = 0
@@ -40,6 +44,10 @@ struct
   let div = (/)
   let (mod) = (mod)
 
+  let (land) = (land)
+  let (lor) = (lor)
+  let (lxor) = (lxor)
+
   let equal : t -> t -> bool = (=)
   let lt : t -> t -> bool = (<)
   let of_int : t -> t = (fun x -> x)
@@ -47,7 +55,7 @@ struct
   let to_string = string_of_int
 end
 
-module BigInt =
+module BigInt : INTEGER =
 struct
   type t = Big_int.big_int
   let zero = Big_int.zero_big_int
@@ -63,6 +71,10 @@ struct
   let div = Big_int.div_big_int
   let (mod) = Big_int.mod_big_int
 
+  let (land) = Big_int.and_big_int
+  let (lor) = Big_int.or_big_int
+  let (lxor) = Big_int.xor_big_int
+
   let equal = Big_int.eq_big_int
   let lt = Big_int.lt_big_int
 
@@ -70,3 +82,5 @@ struct
   let of_string = Big_int.big_int_of_string
   let to_string = Big_int.string_of_big_int
 end
+
+module Z : INTEGER = Z
