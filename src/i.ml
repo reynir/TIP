@@ -83,4 +83,6 @@ struct
   let to_string = Big_int.string_of_big_int
 end
 
+(* Force the type checker to verify that Z indeed satisfies the INTEGER
+ * signature *)
 module Z : INTEGER = Z
