@@ -1,11 +1,11 @@
 
 let () =
-  let lexbuf = Lexing.from_channel stdin in
+  let filename = Sys.argv.(1) in
+  let file = open_in filename in
+  let lexbuf = Lexing.from_channel file in
     try
       let ast = Parser.goal Lexer.token lexbuf in  (* parse input *)
-      let () = Astpp.pp_program ast in
       let wast = Weeder.weed_program ast in
-      let () = Wastpp.pp_program wast in
       let _ = Interpret.execute wast []
       in ()
     with

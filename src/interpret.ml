@@ -158,8 +158,8 @@ let execute (other, main) args =
     | Malloc ->
         Pointer (ref Unitialized)
     | Input ->
-        (* TODO *)
-        Integer Integer.zero
+        let c = input_char stdin in
+        Integer (Integer.of_int (Char.code c))
   and eval_binop env op e1 e2 = match op with
     | LazyOr | LazyAnd ->
         (match eval env e1 with
@@ -192,10 +192,14 @@ let execute (other, main) args =
               | FunctionPointer f1, FunctionPointer f2 ->
                   f1 = f2
               | v1, v2 ->
-                  failwith ("Comparison between two different types: "
+                  (Wastpp.pp_expression e1;
+                   print_newline ();
+                   Wastpp.pp_expression e2;
+                   print_newline ();
+                   failwith ("Comparison between two different types: "
                             ^ string_of_tip_type v1
                             ^ " and "
-                            ^string_of_tip_type v2))
+                            ^string_of_tip_type v2)))
              = (op = Equal)) (* Clever hack *)
     | _ ->
         match eval env e1, eval env e2 with
@@ -305,6 +309,7 @@ let execute (other, main) args =
     | ValueReturn e ->
         (match e with
            | StaticInvoke (f, args) ->
+               print_endline ("Calling "^f);
                let args = List.map (eval env) args in
                let (_, params, body) = try
                  M.find f funcs
